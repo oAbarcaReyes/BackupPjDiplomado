@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    public GameManager gameManager;
     public GameObject explosion;
     public float speed  = 1f;
     public float health = 1;
@@ -11,7 +12,7 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -29,6 +30,7 @@ public class Enemy : MonoBehaviour
         {
             if (collision.gameObject.CompareTag("Bullet"))
             {
+                gameManager.AddScore(10);
                 Destroy(collision.gameObject);
                 Destroy(this.gameObject);
             }

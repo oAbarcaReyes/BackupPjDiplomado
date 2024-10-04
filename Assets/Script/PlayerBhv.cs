@@ -16,10 +16,46 @@ public class PlayerBhv : MonoBehaviour
     //public List<Sprite> shipSprites = new List<Sprite>();
     public List<bulletScript> bullets = new List<bulletScript>();
     public GameObject bulletPref;
-    //public GameObject shield;
+    public GameObject shield;
     //public GameObject playerExplosion;
-
+    public ShipState shipState;
+    public List<Sprite> shipSprites = new List<Sprite>();
     // Start is called before the first frame update
+    public enum ShipState
+    {
+        FullHealth,
+        SlightlyDamaged,
+        Damaged,
+        HeavilyDamaged,
+        Destroyed
+    }
+    void ChangeShipState()
+    {
+        var currentState = shipState;
+        Debug.Log(currentState);
+
+        var newSprite = shipSprites.Find(x => x.name == currentState.ToString());
+        var spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = newSprite;
+        switch (currentState)
+        {
+            case ShipState.FullHealth:
+                shipState = ShipState.SlightlyDamaged;
+                break;
+            case ShipState.SlightlyDamaged:
+                shipState = ShipState.Damaged;
+                break;
+            case ShipState.Damaged:
+                shipState = ShipState.HeavilyDamaged;
+                break;
+            case ShipState.HeavilyDamaged:
+                shipState = ShipState.Destroyed;
+                break;
+            case ShipState.Destroyed:
+                break;
+            
+        }
+    }
     void Start()
     {
 
@@ -32,6 +68,8 @@ public class PlayerBhv : MonoBehaviour
         CheckBoundaries();
         Fire();
         ChangeWeapon();
+        UseShields();
+        //ChangeShipState();
     }
     void Movement()
     {
@@ -73,6 +111,25 @@ public class PlayerBhv : MonoBehaviour
         }
 
     }
+    void UseShields()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift)&& shields > 0)
+        {
+            shields--;
+            shield.SetActive(true);
+            gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        }
+        if (shield.activeSelf)
+        {
+            shieldDuration -= Time.deltaTime;
+            if(shieldDuration < 0)
+            {
+                shield.SetActive(false);
+                shieldDuration = 5.0f;
+                gameObject.GetComponent<BoxCollider2D>().enabled = true;
+            }
+        }
+    }
     void ChangeWeapon()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -92,6 +149,7 @@ public class PlayerBhv : MonoBehaviour
     {
         if (collision != null)
         {
+            ChangeShipState();
             if (collision.gameObject.CompareTag("Enemy"))
             {
                 Destroy(collision.gameObject);
@@ -100,6 +158,7 @@ public class PlayerBhv : MonoBehaviour
                 {
 
                     lives--;
+                    
                 }
                 else
                 {
@@ -118,7 +177,7 @@ public class PlayerBhv : MonoBehaviour
                 Debug.Log("Trigger Enter");
                 if (lives > 1)
                 {
-
+                    ChangeShipState();
                     lives--;
                 }
                 else
