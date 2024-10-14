@@ -6,8 +6,14 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     public GameObject enemyPrefab;
+    public GameObject enemy2Prefab;
+    public GameObject powerUpPrefab;
     public float spawnTime = 1.5f;
+    public float spawnTime2 = 5f;
+    public float spawnTimePowerUp = 4f;
     public float time = 0.0f;
+    public float time2 = 0.0f;
+    public float time3 = 0.0f;
     public int score;
     public float totalTime;
     public TMP_Text liveText;
@@ -26,6 +32,9 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         CreateEnemy();
+        CreateEnemy2();
+        CreatePowerUp();
+       
         UpdateCanvas();
         totalTime += Time.deltaTime;
     }
@@ -37,6 +46,26 @@ public class GameManager : MonoBehaviour
             Instantiate(enemyPrefab, new Vector3(Random.Range(-8.0f, 8.0f), 7.0f, 0), Quaternion.identity);
             time = 0.0f;
             
+        }
+    }
+    public void CreateEnemy2()
+    {
+        time2 += Time.deltaTime;
+        if (time2 > spawnTime2)
+        {
+            Instantiate(enemy2Prefab, new Vector3(Random.Range(-8.0f, 8.0f), 7.0f, 0), Quaternion.identity);
+            time2 = 0.0f;
+
+        }
+    }
+    public void CreatePowerUp()
+    {
+        time3 += Time.deltaTime;
+        if (time3 > spawnTimePowerUp)
+        {
+            Instantiate(powerUpPrefab, new Vector3(Random.Range(-4f, 4.0f), 4.0f, 0), Quaternion.identity);
+            time3 = 0.0f;
+
         }
     }
     void UpdateCanvas()

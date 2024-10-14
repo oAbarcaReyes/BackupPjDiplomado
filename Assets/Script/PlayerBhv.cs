@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerBhv : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class PlayerBhv : MonoBehaviour
     public float fireRate = 0.25f;
     public int lives = 3;
     public int shields = 3;
+    public int hommingMissile = 0;
     public float canFire = 0.0f;
     public float shieldDuration = 5.0f;
     public AudioSource actualAudio;
@@ -17,9 +19,14 @@ public class PlayerBhv : MonoBehaviour
     public List<bulletScript> bullets = new List<bulletScript>();
     public GameObject bulletPref;
     public GameObject shield;
+    
     //public GameObject playerExplosion;
     public ShipState shipState;
     public List<Sprite> shipSprites = new List<Sprite>();
+    public int currentWeapon;
+    public RawImage vidaIMG;
+    public Texture2D[] vidasIMG;
+
     // Start is called before the first frame update
     public enum ShipState
     {
@@ -41,24 +48,29 @@ public class PlayerBhv : MonoBehaviour
         {
             case ShipState.FullHealth:
                 shipState = ShipState.SlightlyDamaged;
+                vidaIMG.texture = vidasIMG[0];
                 break;
             case ShipState.SlightlyDamaged:
                 shipState = ShipState.Damaged;
+                vidaIMG.texture = vidasIMG[1];
                 break;
             case ShipState.Damaged:
                 shipState = ShipState.HeavilyDamaged;
+                vidaIMG.texture = vidasIMG[2];
                 break;
             case ShipState.HeavilyDamaged:
                 shipState = ShipState.Destroyed;
+                vidaIMG.texture = vidasIMG[3];
                 break;
             case ShipState.Destroyed:
+                vidaIMG.texture = vidasIMG[4];
                 break;
             
         }
     }
     void Start()
     {
-
+        vidaIMG.texture = vidasIMG[0];
     }
 
     // Update is called once per frame
@@ -70,6 +82,7 @@ public class PlayerBhv : MonoBehaviour
         ChangeWeapon();
         UseShields();
         //ChangeShipState();
+
     }
     void Movement()
     {
@@ -101,13 +114,75 @@ public class PlayerBhv : MonoBehaviour
         }
 
     }
+    //Obtener Enemigo Más cercano para bala 4
+    public Transform EnemigoCercano()
+    {
+        GameObject[] enemigos = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject masCercano= null;
+        float closestDistance = Mathf.Infinity;
+
+        Vector3 position = transform.position;
+
+        foreach (GameObject enemy in enemigos)
+        {
+            float distance = Vector3.Distance(enemy.transform.position, position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                masCercano = enemy;
+            }
+        }
+
+        if (masCercano != null)
+        {
+            return masCercano.transform;
+
+        }
+
+        return null; 
+    }
     void Fire()
     {
         if (Input.GetKeyDown(KeyCode.Space) && Time.time > canFire)
         {
-            actualAudio.Play();
-            Instantiate(bulletPref, transform.position + new Vector3(0, 0.8f, 0), Quaternion.identity);
-            canFire = Time.time + fireRate;
+            switch (currentWeapon)
+            {
+                case 0:
+                    actualAudio.pitch = Random.Range(4, 4.5f);
+                    actualAudio.Play();
+                    Instantiate(bulletPref, transform.position + new Vector3(0, 0.8f, 0), Quaternion.identity);
+                    canFire = Time.time + fireRate;
+                    break;
+                case 1:
+                    actualAudio.pitch = Random.Range(5, 5.5f);
+                    actualAudio.Play();
+                    Instantiate(bulletPref, transform.position + new Vector3(-1, 0.8f, 0), Quaternion.identity);
+                    Instantiate(bulletPref, transform.position + new Vector3(0, 0.8f, 0), Quaternion.identity);
+                    Instantiate(bulletPref, transform.position + new Vector3(-1, 0.8f, 0), Quaternion.identity);
+                    canFire = Time.time + fireRate;
+                    break;
+                case 2:
+                    actualAudio.pitch = Random.Range(1, 2f);
+                    actualAudio.Play();
+                    Instantiate(bulletPref, transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
+                    canFire = Time.time + fireRate;
+                    break;
+                case 3:
+                    if (hommingMissile >0)
+                    {
+                        actualAudio.pitch = Random.Range(2.5f, 3f);
+                        actualAudio.Play();
+                        GameObject bullet = Instantiate(bulletPref, transform.position + new Vector3(0, 0.2f, 0), Quaternion.identity);
+                        bullet.GetComponent<Bullet4>().target = EnemigoCercano();
+                        canFire = Time.time + fireRate + 0.5f;
+                        hommingMissile--;
+                    }
+                    
+                    break;
+             
+            }
+            
+          
         }
 
     }
@@ -135,14 +210,24 @@ public class PlayerBhv : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             bulletPref = bullets[0].gameObject;
+            currentWeapon = 0;
         }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             bulletPref = bullets[1].gameObject;
+            currentWeapon = 1;
         }
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             bulletPref = bullets[2].gameObject;
+            currentWeapon = 2;
+        }
+        //Bullet 4
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            bulletPref = bullets[3].gameObject;
+            currentWeapon = 3;
+
         }
     }
     public void OnCollisionEnter2D(Collision2D collision)
@@ -186,7 +271,14 @@ public class PlayerBhv : MonoBehaviour
                     Destroy(this.gameObject);
                 }
             }
+            if (collision.gameObject.CompareTag("PowerUp"))
+            {
+                Destroy(collision.gameObject);
+                Debug.Log("Trigger Enter");
+                hommingMissile += 3;
+            }
         }
     }
+
 }
 

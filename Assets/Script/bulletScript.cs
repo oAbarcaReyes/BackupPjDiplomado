@@ -16,7 +16,7 @@ public class bulletScript : MonoBehaviour
     {
         Movement();
     }
-    void Movement()
+    public virtual void Movement()
     {
         transform.Translate(Vector3.up * 5.0f * Time.deltaTime);
     }

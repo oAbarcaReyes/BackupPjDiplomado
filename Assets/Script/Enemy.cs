@@ -20,7 +20,7 @@ public class Enemy : MonoBehaviour
     {
         Movement();
     }
-    void Movement()
+   public virtual void Movement()
     {
         transform.Translate(new Vector3(Mathf.Sin(Time.time*1.5f),-1,0)*speed*Time.deltaTime);
     }
